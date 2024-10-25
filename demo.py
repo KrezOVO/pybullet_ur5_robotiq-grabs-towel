@@ -28,7 +28,22 @@ towelStartOrientation = p.getQuaternionFromEuler([0, 0, 0])
 towel_path = os.path.join(current_dir, "towel", "towel2.obj")
 
 # 加载毛巾模型
-towelId = p.loadSoftBody(towel_path, basePosition=towelStartPos, baseOrientation=towelStartOrientation, scale=0.5, mass=0.5)
+towelId = p.loadSoftBody(
+    fileName=towel_path,
+    basePosition=towelStartPos,
+    baseOrientation=towelStartOrientation,
+    scale=0.5,
+    mass=0.5,
+    useNeoHookean=0,
+    useBendingSprings=1,
+    useMassSpring=1,
+    springElasticStiffness=40,
+    springDampingStiffness=0.1,
+    springDampingAllDirections=1,
+    useSelfCollision=1,
+    frictionCoeff=0.5,
+    useFaceContact=1
+)
 
 # 加载UR5机械臂
 ur5_path = os.path.join(current_dir, "ur", "urdf", "ur5_robotiq_85.urdf")
