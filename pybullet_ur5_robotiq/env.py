@@ -20,7 +20,7 @@ class ClutteredPushGrasp:
 
     SIMULATION_STEP_DELAY = 1 / 240.
 
-    def __init__(self, robot, models: Models, camera=None, vis=False) -> None:
+    def __init__(self, robot, towel_path, camera=None, vis=False) -> None:
         self.robot = robot
         self.vis = vis
         if self.vis:
