@@ -5,7 +5,7 @@ import pybullet as p
 
 from tqdm import tqdm
 from env import ClutteredPushGrasp
-from robot import Panda, UR5Robotiq85, UR5Robotiq140
+from robot import Panda, UR5Robotiq85
 from utilities import YCBModels, Camera
 import time
 import math
