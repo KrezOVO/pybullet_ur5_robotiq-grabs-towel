@@ -12,9 +12,10 @@ import math
 
 
 def user_control_demo():
-    ycb_models = YCBModels(
-        os.path.join('./data/ycb', '**', 'textured-decmp.obj'),
-    )
+    
+    # 添加towel模型的路径
+    towel_path = os.path.join(os.path.dirname(__file__), 'towel', 'towel2.obj')
+    
     camera = Camera((1, 1, 1),
                     (0, 0, 0),
                     (0, 0, 1),
@@ -22,7 +23,9 @@ def user_control_demo():
     camera = None
     # robot = Panda((0, 0.5, 0), (0, 0, math.pi))
     robot = UR5Robotiq85((0, 0.5, 0), (0, 0, 0))
-    env = ClutteredPushGrasp(robot, ycb_models, camera, vis=True)
+    
+    # 将ycb_models替换为towel_path
+    env = ClutteredPushGrasp(robot, towel_path, camera, vis=True)
 
     env.reset()
     # env.SIMULATION_STEP_DELAY = 0
