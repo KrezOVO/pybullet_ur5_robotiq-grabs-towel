@@ -16,11 +16,17 @@ def user_control_demo():
     # 添加towel模型的路径
     towel_path = os.path.join(os.path.dirname(__file__), 'towel', 'towel2.obj')
     
-    camera = Camera((1, 1, 1),
-                    (0, 0, 0),
-                    (0, 0, 1),
-                    0.1, 5, (320, 320), 40)
-    camera = None
+    # 修改摄像机参数
+    camera = Camera(
+        (0.5, 0.5, 0.5),  # 摄像机位置更靠近场景中心
+        (0, 0, 0),        # 摄像机看向原点
+        (0, 0, 1),        # 摄像机向上方向
+        0.1,              # 近裁剪平面
+        2,                # 远裁剪平面（减小以避免看到太远）
+        (320, 320),       # 图像分辨率保持不变
+        30                # 增大视场角以看到更多内容
+    )
+    
     # robot = Panda((0, 0.5, 0), (0, 0, math.pi))
     robot = UR5Robotiq85((0, 0.5, 0), (0, 0, 0))
     

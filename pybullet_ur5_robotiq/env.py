@@ -36,6 +36,27 @@ class ClutteredPushGrasp:
         self.robot.load()
         self.robot.step_simulation = self.step_simulation
 
+        # 加载毛巾模型
+        self.towel_id = p.loadSoftBody(
+            fileName=towel_path,
+            basePosition=[0, 0, 0.01],  # 将毛巾放置在地面上方一点点的位置
+            baseOrientation=[0, 0, 0, 1],
+            scale=0.5,  # 减小毛巾的尺寸
+            mass=0.5,   # 相应减小质量
+            useNeoHookean=0,
+            useBendingSprings=0,
+            useMassSpring=0,
+            springElasticStiffness=1.0,
+            springDampingStiffness=0.1,
+            springDampingAllDirections=1,
+            useSelfCollision=0,
+            frictionCoeff=.5,
+            useFaceContact=0,
+            collisionMargin=0.001
+        )
+
+        print(f"毛巾加载成功,ID为: {self.towel_id}")
+
         # custom sliders to tune parameters (name of the parameter,range,initial value)
         self.xin = p.addUserDebugParameter("x", -0.224, 0.224, 0)
         self.yin = p.addUserDebugParameter("y", -0.224, 0.224, 0)
@@ -44,18 +65,6 @@ class ClutteredPushGrasp:
         self.pitchId = p.addUserDebugParameter("pitch", -3.14, 3.14, np.pi/2)
         self.yawId = p.addUserDebugParameter("yaw", -np.pi/2, np.pi/2, np.pi/2)
         self.gripper_opening_length_control = p.addUserDebugParameter("gripper_opening_length", 0, 0.085, 0.04)
-
-        self.boxID = p.loadURDF("./urdf/skew-box-button.urdf",
-                                [0.0, 0.0, 0.0],
-                                # p.getQuaternionFromEuler([0, 1.5706453, 0]),
-                                p.getQuaternionFromEuler([0, 0, 0]),
-                                useFixedBase=True,
-                                flags=p.URDF_MERGE_FIXED_LINKS | p.URDF_USE_SELF_COLLISION)
-
-        # For calculating the reward
-        self.box_opened = False
-        self.btn_pressed = False
-        self.box_closed = False
 
     def step_simulation(self):
         """
@@ -97,21 +106,9 @@ class ClutteredPushGrasp:
         return self.get_observation(), reward, done, info
 
     def update_reward(self):
-        reward = 0
-        if not self.box_opened:
-            if p.getJointState(self.boxID, 1)[0] > 1.9:
-                self.box_opened = True
-                print('Box opened!')
-        elif not self.btn_pressed:
-            if p.getJointState(self.boxID, 0)[0] < - 0.02:
-                self.btn_pressed = True
-                print('Btn pressed!')
-        else:
-            if p.getJointState(self.boxID, 1)[0] < 0.1:
-                print('Box closed!')
-                self.box_closed = True
-                reward = 1
-        return reward
+        # 由于删除了盒子,我们需要修改奖励计算逻辑
+        # 这里暂时返回一个固定值,您可以根据需要自定义奖励函数
+        return 0
 
     def get_observation(self):
         obs = dict()
@@ -124,13 +121,12 @@ class ClutteredPushGrasp:
 
         return obs
 
-    def reset_box(self):
-        p.setJointMotorControl2(self.boxID, 0, p.POSITION_CONTROL, force=1)
-        p.setJointMotorControl2(self.boxID, 1, p.VELOCITY_CONTROL, force=0)
-
     def reset(self):
         self.robot.reset()
-        self.reset_box()
+        
+        # 重置毛巾位置
+        p.resetBasePositionAndOrientation(self.towel_id, [0, 0, 0.01], [0, 0, 0, 1])
+        
         return self.get_observation()
 
     def close(self):
