@@ -39,10 +39,10 @@ class ClutteredPushGrasp:
         # 加载毛巾模型
         self.towel_id = p.loadSoftBody(
             fileName=towel_path,
-            basePosition=[0, 0, 0.01],  # 将毛巾放置在地面上方一点点的位置
+            basePosition=[0, 0, 0],
             baseOrientation=[0, 0, 0, 1],
-            scale=0.5,  # 减小毛巾的尺寸
-            mass=0.5,   # 相应减小质量
+            scale=0.5,
+            mass=0.5,
             useNeoHookean=0,
             useBendingSprings=0,
             useMassSpring=0,
@@ -55,7 +55,8 @@ class ClutteredPushGrasp:
             collisionMargin=0.001
         )
 
-        print(f"毛巾加载成功,ID为: {self.towel_id}")
+        # 获取当前机械臂末端执行器的姿态
+        self.current_orientation = p.getQuaternionFromEuler([0, np.pi/2, np.pi/2])
 
         # custom sliders to tune parameters (name of the parameter,range,initial value)
         self.xin = p.addUserDebugParameter("x", -0.224, 0.224, 0)
@@ -64,7 +65,7 @@ class ClutteredPushGrasp:
         self.rollId = p.addUserDebugParameter("roll", -3.14, 3.14, 0)
         self.pitchId = p.addUserDebugParameter("pitch", -3.14, 3.14, np.pi/2)
         self.yawId = p.addUserDebugParameter("yaw", -np.pi/2, np.pi/2, np.pi/2)
-        self.gripper_opening_length_control = p.addUserDebugParameter("gripper_opening_length", 0, 0.085, 0.04)
+        self.gripper_opening_length_control = p.addUserDebugParameter("gripper_opening_length", 0, 0.085, 0.085)
 
     def step_simulation(self):
         """
@@ -130,3 +131,43 @@ class ClutteredPushGrasp:
 
     def close(self):
         p.disconnect(self.physicsClient)
+
+    def move_to_towel_corner(self):
+        """移动到毛巾角落的方法"""
+        # 获取毛巾位置
+        towel_pos = p.getBasePositionAndOrientation(self.towel_id)[0]
+        
+        # 设置目标位置（毛巾的一个角落）
+        target_pos = [
+            towel_pos[0] - 0.25,  # 考虑毛巾尺寸的x方向偏移
+            towel_pos[1] - 0.25,  # 考虑毛巾尺寸的y方向偏移
+            towel_pos[2]
+        ]
+        
+        # 使用逆运动学计算关节角度
+        joint_poses = p.calculateInverseKinematics(
+            self.robot.id, 
+            self.robot.eef_id, 
+            target_pos, 
+            self.current_orientation,
+            self.robot.arm_lower_limits, 
+            self.robot.arm_upper_limits, 
+            self.robot.arm_joint_ranges, 
+            self.robot.arm_rest_poses,
+            maxNumIterations=20
+        )
+        
+        # 控制机械臂移动
+        for i, joint_id in enumerate(self.robot.arm_controllable_joints):
+            p.setJointMotorControl2(
+                self.robot.id, 
+                joint_id, 
+                p.POSITION_CONTROL, 
+                joint_poses[i],
+                force=self.robot.joints[joint_id].maxForce, 
+                maxVelocity=self.robot.joints[joint_id].maxVelocity
+            )
+        
+        # 等待机械臂到达目标位置
+        for _ in range(120):
+            self.step_simulation()

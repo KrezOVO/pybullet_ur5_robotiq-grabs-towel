@@ -34,6 +34,10 @@ def user_control_demo():
     env = ClutteredPushGrasp(robot, towel_path, camera, vis=True)
 
     env.reset()
+    
+    # 移动到毛巾角落
+    env.move_to_towel_corner()
+    
     while True:
         obs, info = env.step(env.read_debug_parameter(), 'end')
         # print(obs, info)
