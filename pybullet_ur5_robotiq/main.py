@@ -24,7 +24,7 @@ def user_control_demo():
         0.1,              # 近裁剪平面
         2,                # 远裁剪平面（减小以避免看到太远）
         (320, 320),       # 图像分辨率保持不变
-        30                # 增大视场角以看到更多内容
+        60              # 增大视场角以看到更多内容
     )
     
     # robot = Panda((0, 0.5, 0), (0, 0, math.pi))
@@ -34,10 +34,9 @@ def user_control_demo():
     env = ClutteredPushGrasp(robot, towel_path, camera, vis=True)
 
     env.reset()
-    # env.SIMULATION_STEP_DELAY = 0
     while True:
-        obs, reward, done, info = env.step(env.read_debug_parameter(), 'end')
-        # print(obs, reward, done, info)
+        obs, info = env.step(env.read_debug_parameter(), 'end')
+        # print(obs, info)
 
 
 if __name__ == '__main__':

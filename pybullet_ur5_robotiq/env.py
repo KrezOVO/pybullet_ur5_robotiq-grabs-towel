@@ -100,15 +100,14 @@ class ClutteredPushGrasp:
         for _ in range(120):  # Wait for a few steps
             self.step_simulation()
 
-        reward = self.update_reward()
-        done = True if reward == 1 else False
-        info = dict(box_opened=self.box_opened, btn_pressed=self.btn_pressed, box_closed=self.box_closed)
-        return self.get_observation(), reward, done, info
-
-    def update_reward(self):
-        # 由于删除了盒子,我们需要修改奖励计算逻辑
-        # 这里暂时返回一个固定值,您可以根据需要自定义奖励函数
-        return 0
+        info = dict(
+            robot_position=self.robot.get_ee_position(),
+            robot_orientation=self.robot.get_ee_orientation(),
+            gripper_opening_length=self.robot.get_gripper_opening_length(),
+            towel_position=p.getBasePositionAndOrientation(self.towel_id)[0]
+        )
+        
+        return self.get_observation(), info
 
     def get_observation(self):
         obs = dict()
