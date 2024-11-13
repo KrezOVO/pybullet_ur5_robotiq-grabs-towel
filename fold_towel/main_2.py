@@ -35,8 +35,7 @@ def user_control_demo():
 
     env.reset()
     
-    # 移动到毛巾角落
-    env.move_to_towel_corner()
+    env.fold_towel_along_one_side()
     
     while True:
         obs, info = env.step(env.read_debug_parameter(), 'end')

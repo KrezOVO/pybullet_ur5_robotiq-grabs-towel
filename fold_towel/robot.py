@@ -137,6 +137,45 @@ class RobotBase(object):
         ee_pos = p.getLinkState(self.id, self.eef_id)[0]
         return dict(positions=positions, velocities=velocities, ee_pos=ee_pos)
 
+    def accurate_ik(self, target_pos, target_orn, threshold=1e-5, max_iter=100):
+        close_enough = False
+        iter_count = 0
+        dist2 = 1e30
+        
+        while (not close_enough and iter_count < max_iter):
+            joint_poses = p.calculateInverseKinematics(
+                self.id, 
+                self.eef_id, 
+                target_pos, 
+                target_orn,
+                self.arm_lower_limits, 
+                self.arm_upper_limits, 
+                self.arm_joint_ranges, 
+                self.arm_rest_poses,
+                maxNumIterations=20
+            )
+            
+            # 应用计算出的关节角度
+            for i, joint_id in enumerate(self.arm_controllable_joints):
+                p.resetJointState(self.id, joint_id, joint_poses[i])
+            
+            # 获取新的末端执行器位置
+            ls = p.getLinkState(self.id, self.eef_id)
+            new_pos = ls[4]  # 获取世界坐标系中的位置
+            
+            # 计算与目标位置的距离
+            diff = [
+                target_pos[0] - new_pos[0],
+                target_pos[1] - new_pos[1],
+                target_pos[2] - new_pos[2]
+            ]
+            dist2 = sum([d*d for d in diff])
+            close_enough = (dist2 < threshold)
+            iter_count += 1
+            
+        print(f"IK迭代次数: {iter_count}, 最终误差: {dist2:.6f}")
+        return joint_poses
+
 
 class Panda(RobotBase):
     def __init_robot__(self):
